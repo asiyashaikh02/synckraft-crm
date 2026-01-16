@@ -1,0 +1,7 @@
+{
+  "name": "Synckraft CRM MVP",
+  "description": "A production-ready CRM with role-based access control, specialized sales-to-operations workflow, and AI-powered business insights.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

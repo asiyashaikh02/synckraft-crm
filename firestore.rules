@@ -1,0 +1,60 @@
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper: Check if user is authenticated
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Helper: Get user data from 'users' collection
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    // Helper: Check roles
+    function hasRole(role) {
+      return isSignedIn() && getUserData().role == role && getUserData().status == 'APPROVED';
+    }
+
+    // --- COLLECTION: USERS ---
+    match /users/{userId} {
+      // Users can read their own profile; Admins can read/write all
+      allow read: if isSignedIn() && (request.auth.uid == userId || getUserData().role == 'MASTER_ADMIN');
+      // Registration: allow create if pending
+      allow create: if isSignedIn() && request.resource.data.status == 'PENDING';
+      // Only Master Admin can approve/change roles
+      allow update: if hasRole('MASTER_ADMIN');
+    }
+
+    // --- COLLECTION: LEADS ---
+    match /leads/{leadId} {
+      // Master Admin: Full access
+      allow read, write: if hasRole('MASTER_ADMIN');
+      // Sales: Only their own leads
+      allow read, write: if hasRole('SALES') && (resource == null || resource.data.salesUserId == request.auth.uid);
+      // Ops: No access to leads
+      allow read: if false;
+    }
+
+    // --- COLLECTION: CUSTOMERS ---
+    match /customers/{customerId} {
+      // Master Admin: Full access
+      allow read, write: if hasRole('MASTER_ADMIN');
+      
+      // Sales: 
+      // 1. Can read their own customers.
+      // 2. Can ONLY update if status is 'INACTIVE'. Once 'ACTIVE', it is locked for Sales.
+      allow read: if hasRole('SALES') && resource.data.salesUserId == request.auth.uid;
+      allow update: if hasRole('SALES') && resource.data.salesUserId == request.auth.uid && resource.data.status == 'INACTIVE';
+      
+      // Operations:
+      // 1. Can only see 'ACTIVE' customers.
+      // 2. Can update executionStage and internalCost.
+      allow read: if hasRole('OPERATIONS') && resource.data.status == 'ACTIVE';
+      allow update: if hasRole('OPERATIONS') && resource.data.status == 'ACTIVE' && 
+                    request.resource.data.diff(resource.data).affectedKeys().hasOnly(['executionStage', 'internalCost']);
+    }
+  }
+}
