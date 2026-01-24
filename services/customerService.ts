@@ -12,6 +12,8 @@ export const convertLeadToCustomer = async (lead: Lead) => {
     leadId: lead.id,
     companyName: lead.companyName,
     salesUserId: lead.salesUserId,
+    salesUniqueId: (lead as any).salesUniqueId || undefined,
+    clientCode: (lead as any).clientCode || undefined,
     status: CustomerStatus.INACTIVE,
     isLocked: false,
     createdAt: Date.now(),
@@ -38,5 +40,13 @@ export const updateOpsMetrics = async (id: string, stage: ExecutionStage, cost: 
   await updateDoc(doc(db, "customers", id), {
     executionStage: stage,
     internalCost: cost
+  });
+};
+
+export const updateCustomerAssignment = async (customerId: string, salesUserId: string, salesUniqueId?: string, clientCode?: string) => {
+  await updateDoc(doc(db, 'customers', customerId), {
+    salesUserId,
+    salesUniqueId: salesUniqueId || null,
+    clientCode: clientCode || salesUniqueId || null
   });
 };

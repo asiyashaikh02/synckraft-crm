@@ -1,32 +1,17 @@
+/* =========================
+   USER & AUTH
+========================= */
 
 export enum UserRole {
-  MASTER_ADMIN = 'MASTER_ADMIN',
-  SALES = 'SALES',
-  OPERATIONS = 'OPERATIONS'
+  MASTER_ADMIN = "MASTER_ADMIN",
+  SALES = "SALES",
+  OPERATIONS = "OPERATIONS",
 }
 
 export enum UserStatus {
-  PENDING = 'PENDING',
-  APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED'
-}
-
-export enum LeadStatus {
-  NEW = 'NEW',
-  NEGOTIATION = 'NEGOTIATION',
-  APPROVED = 'APPROVED'
-}
-
-export enum CustomerStatus {
-  INACTIVE = 'INACTIVE',
-  ACTIVE = 'ACTIVE',
-  DELETED = 'DELETED'
-}
-
-export enum ExecutionStage {
-  PLANNING = 'PLANNING',
-  EXECUTION = 'EXECUTION',
-  DELIVERED = 'DELIVERED'
+  PENDING = "PENDING",      // waiting for admin approval
+  ACTIVE = "ACTIVE",        // approved & can use system
+  REJECTED = "REJECTED",    // blocked
 }
 
 export interface UserProfile {
@@ -38,6 +23,17 @@ export interface UserProfile {
   createdAt: number;
 }
 
+/* =========================
+   LEADS (Sales)
+========================= */
+
+export enum LeadStatus {
+  NEW = "NEW",                 // freshly created
+  NEGOTIATION = "NEGOTIATION", // discussion / pricing
+  APPROVED = "APPROVED",       // approved → convert to customer
+  REJECTED = "REJECTED",
+}
+
 export interface Lead {
   id: string;
   companyName: string;
@@ -46,9 +42,27 @@ export interface Lead {
   phone: string;
   status: LeadStatus;
   salesUserId: string;
+  salesUniqueId?: string; // links to profiles.uniqueId for integrity
+  clientCode?: string; // client-specific code shown on leads
   potentialValue: number;
   createdAt: number;
   updatedAt: number;
+}
+
+/* =========================
+   CUSTOMERS (Post-Sales)
+========================= */
+
+export enum CustomerStatus {
+  INACTIVE = "INACTIVE",   // 72-hour buffer
+  ACTIVE = "ACTIVE",       // confirmed customer
+  DELETED = "DELETED",     // dropped
+}
+
+export enum ExecutionStage {
+  PLANNING = "PLANNING",
+  EXECUTION = "EXECUTION",
+  DELIVERED = "DELIVERED",
 }
 
 export interface Customer {
@@ -56,11 +70,13 @@ export interface Customer {
   leadId: string;
   companyName: string;
   salesUserId: string;
+  salesUniqueId?: string;
+  clientCode?: string;
   status: CustomerStatus;
-  isLocked: boolean;
-  createdAt: number;
-  activatedAt?: number;
+  isLocked: boolean;              // after 72 hours
   executionStage: ExecutionStage;
   internalCost: number;
   billingAmount: number;
+  createdAt: number;
+  activatedAt?: number;
 }
