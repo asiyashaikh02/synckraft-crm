@@ -50,7 +50,19 @@ export interface Lead {
   salesUniqueId?: string; // links to profiles.uniqueId for integrity
   clientCode?: string; // client-specific code shown on leads
   city?: string; // e.g. "Mumbai", "Delhi"
+  // --- AI Scoring Inputs ---
+  monthlyUnits?: number;
+  roofType?: string; // e.g. "RCC", "Sheet", etc.
+  followUpCount?: number;
+  visitCount?: number;
+  responseTimeMinutes?: number;
+
+  // --- AI Scoring Outputs ---
   aiScore?: number; // 0-100 score
+  aiCategory?: "HOT" | "WARM" | "COLD";
+
+  // --- Automation Fields ---
+  lastFollowUpAt?: number;
   potentialValue: number;
   createdAt: number;
   updatedAt: number;
