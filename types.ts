@@ -136,7 +136,14 @@ export enum ActivityType {
   FOLLOW_UP = "FOLLOW_UP",
   STATUS_CHANGE = "STATUS_CHANGE",
   NOTE_ADDED = "NOTE_ADDED",
-  PROPOSAL_GENERATED = "PROPOSAL_GENERATED"
+  PROPOSAL_GENERATED = "PROPOSAL_GENERATED",
+
+  // OPS (post-sales execution)
+  SITE_VISIT_STATUS_CHANGED = "SITE_VISIT_STATUS_CHANGED",
+  PROPOSAL_STATUS_CHANGED = "PROPOSAL_STATUS_CHANGED",
+  INSTALLATION_STAGE_CHANGED = "INSTALLATION_STAGE_CHANGED",
+  TESTING_COMPLETED = "TESTING_COMPLETED",
+  PROJECT_DELIVERED = "PROJECT_DELIVERED"
 }
 
 export interface ActivityLog {
@@ -179,4 +186,20 @@ export interface Customer {
   billingAmount: number;
   createdAt: number;
   activatedAt?: number;
+}
+
+/* =========================
+   OPS (Post-Sales Execution)
+========================= */
+
+export type OpsVisitStatus = "scheduled" | "completed" | "rescheduled" | "cancelled";
+export type OpsProposalStatus = "draft" | "sent" | "approved" | "rejected";
+export type InstallationStage = "planning" | "material_dispatch" | "installation" | "testing" | "completed";
+
+export interface OpsNote {
+  id: string;
+  projectId: string;
+  note: string;
+  createdAt: number;
+  userId: string;
 }

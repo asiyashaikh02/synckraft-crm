@@ -12,7 +12,12 @@ import {
   TrendingUp,
   CalendarDays,
   CheckSquare,
-  FileText
+  FileText,
+  ClipboardList,
+  FileSignature,
+  HardHat,
+  FolderKanban,
+  BadgeCheck
 } from 'lucide-react';
 import { useAuth } from '../../../hooks/useAuth';
 import { UserRole } from '../../../types';
@@ -55,7 +60,12 @@ export const Sidebar = () => {
         ];
       case UserRole.OPS_USER:
         return [
-          { to: '/customers', icon: <Briefcase className="w-5 h-5" />, label: 'Customers' },
+          { to: '/ops-dashboard', icon: <LayoutDashboard className="w-5 h-5" />, label: 'Dashboard' },
+          { to: '/ops/site-visits', icon: <ClipboardList className="w-5 h-5" />, label: 'Site Visits' },
+          { to: '/ops/proposals', icon: <FileSignature className="w-5 h-5" />, label: 'Proposals' },
+          { to: '/ops/installations', icon: <HardHat className="w-5 h-5" />, label: 'Installations' },
+          { to: '/ops/projects', icon: <FolderKanban className="w-5 h-5" />, label: 'Projects' },
+          { to: '/ops/completed-projects', icon: <BadgeCheck className="w-5 h-5" />, label: 'Completed Projects' },
         ];
       default:
         return [];
