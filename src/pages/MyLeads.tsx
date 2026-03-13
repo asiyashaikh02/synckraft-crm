@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, onSnapshot, query, where, orderBy } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { Lead, LeadStatus } from '../../types';
-import { Search, Filter, MapPin, AlertCircle, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { Search, Filter, MapPin, AlertCircle, ChevronLeft, ChevronRight, Eye, Flame } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
@@ -16,6 +16,8 @@ export const MyLeads = () => {
   // Filters and Pagination
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<LeadStatus | 'ALL'>('ALL');
+  const [aiCategoryFilter, setAiCategoryFilter] = useState<'ALL' | 'HOT' | 'WARM' | 'COLD'>('ALL');
+  const [sortByScore, setSortByScore] = useState<'NONE' | 'DESC' | 'ASC'>('DESC');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -52,13 +54,21 @@ export const MyLeads = () => {
       lead.phone.includes(searchTerm);
       
     const statusMatch = statusFilter === 'ALL' || lead.status === statusFilter;
+    const categoryMatch = aiCategoryFilter === 'ALL' || lead.aiCategory === aiCategoryFilter;
     
-    return searchMatch && statusMatch;
+    return searchMatch && statusMatch && categoryMatch;
+  });
+
+  const sortedLeads = [...filteredLeads].sort((a, b) => {
+    if (sortByScore === 'NONE') return 0;
+    const aScore = a.aiScore ?? 0;
+    const bScore = b.aiScore ?? 0;
+    return sortByScore === 'DESC' ? bScore - aScore : aScore - bScore;
   });
 
   // Calculate pagination
-  const totalPages = Math.ceil(filteredLeads.length / itemsPerPage);
-  const paginatedLeads = filteredLeads.slice(
+  const totalPages = Math.ceil(sortedLeads.length / itemsPerPage);
+  const paginatedLeads = sortedLeads.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -77,11 +87,38 @@ export const MyLeads = () => {
     }
   };
 
-  const getAiScoreColor = (score?: number) => {
-    if (!score) return 'text-slate-400';
-    if (score >= 80) return 'text-emerald-600 font-bold';
-    if (score >= 50) return 'text-orange-500 font-semibold';
-    return 'text-red-500';
+  const getAiPill = (lead: Lead) => {
+    const score = lead.aiScore ?? 0;
+    const category = lead.aiCategory;
+    if (!category) {
+      return (
+        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-slate-100 text-slate-500">
+          <Flame className="w-3 h-3 mr-1" />
+          Not scored
+        </span>
+      );
+    }
+    const base = 'inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold';
+    if (category === 'HOT') {
+      return (
+        <span className={`${base} bg-rose-100 text-rose-700`}>
+          <Flame className="w-3 h-3 mr-1" />
+          HOT · {score}
+        </span>
+      );
+    }
+    if (category === 'WARM') {
+      return (
+        <span className={`${base} bg-amber-100 text-amber-700`}>
+          WARM · {score}
+        </span>
+      );
+    }
+    return (
+      <span className={`${base} bg-sky-100 text-sky-700`}>
+        COLD · {score}
+      </span>
+    );
   };
 
   return (
@@ -123,6 +160,38 @@ export const MyLeads = () => {
                 ))}
               </select>
             </div>
+
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <select
+                value={aiCategoryFilter}
+                onChange={(e) => {
+                  setAiCategoryFilter(e.target.value as any);
+                  setCurrentPage(1);
+                }}
+                className="pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-lg text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer font-medium text-slate-700"
+              >
+                <option value="ALL">All Priorities</option>
+                <option value="HOT">HOT</option>
+                <option value="WARM">WARM</option>
+                <option value="COLD">COLD</option>
+              </select>
+            </div>
+
+            <div className="relative">
+              <select
+                value={sortByScore}
+                onChange={(e) => {
+                  setSortByScore(e.target.value as any);
+                  setCurrentPage(1);
+                }}
+                className="pl-3 pr-8 py-2 bg-white border border-slate-200 rounded-lg text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer font-medium text-slate-700"
+              >
+                <option value="DESC">Score: High → Low</option>
+                <option value="ASC">Score: Low → High</option>
+                <option value="NONE">Score: None</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -134,7 +203,7 @@ export const MyLeads = () => {
                 <th className="px-6 py-4">Lead Info</th>
                 <th className="px-6 py-4">Contact</th>
                 <th className="px-6 py-4">Location</th>
-                <th className="px-6 py-4">AI Score</th>
+                <th className="px-6 py-4">AI Priority</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4 text-center">Actions</th>
               </tr>
@@ -181,9 +250,7 @@ export const MyLeads = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className={`text-sm ${getAiScoreColor(lead.aiScore)}`}>
-                         {lead.aiScore ? `${lead.aiScore}/100` : '-'}
-                      </div>
+                      {getAiPill(lead)}
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${getStatusColor(lead.status)}`}>

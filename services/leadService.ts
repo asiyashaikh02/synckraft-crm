@@ -2,11 +2,12 @@
 import { collection, addDoc, updateDoc, doc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { Lead, LeadStatus } from "../types";
+import { computeLeadScore } from "./leadScoringService";
 
 const genLeadCode = () => 'LEAD-' + Math.floor(100000 + Math.random() * 900000).toString();
 
 export const createLead = async (data: Partial<Lead>, uid: string, salesUniqueId?: string, clientCode?: string) => {
-  return addDoc(collection(db, "leads"), {
+  const base: Partial<Lead> = {
     ...data,
     salesUserId: uid,
     salesUniqueId: salesUniqueId || null,
@@ -14,6 +15,14 @@ export const createLead = async (data: Partial<Lead>, uid: string, salesUniqueId
     status: LeadStatus.NEW,
     createdAt: Date.now(),
     updatedAt: Date.now()
+  };
+
+  const { aiScore, aiCategory } = computeLeadScore(base);
+
+  return addDoc(collection(db, "leads"), {
+    ...base,
+    aiScore,
+    aiCategory
   });
 };
 

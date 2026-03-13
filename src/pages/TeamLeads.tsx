@@ -13,6 +13,8 @@ export const TeamLeads = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [cityFilter, setCityFilter] = useState<string>('ALL');
+  const [aiCategoryFilter, setAiCategoryFilter] = useState<'ALL' | 'HOT' | 'WARM' | 'COLD'>('ALL');
+  const [sortByScore, setSortByScore] = useState<'NONE' | 'DESC' | 'ASC'>('DESC');
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -57,12 +59,20 @@ export const TeamLeads = () => {
                         lead.phone.toLowerCase().includes(searchLower);
     const matchStatus = statusFilter === 'ALL' || lead.status === statusFilter;
     const matchCity = cityFilter === 'ALL' || lead.city === cityFilter;
-    return matchSearch && matchStatus && matchCity;
+    const matchAi = aiCategoryFilter === 'ALL' || lead.aiCategory === aiCategoryFilter;
+    return matchSearch && matchStatus && matchCity && matchAi;
   });
 
   // Pagination Logic
-  const totalPages = Math.ceil(filteredLeads.length / itemsPerPage);
-  const paginatedLeads = filteredLeads.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const sortedLeads = [...filteredLeads].sort((a, b) => {
+    if (sortByScore === 'NONE') return 0;
+    const aScore = a.aiScore ?? 0;
+    const bScore = b.aiScore ?? 0;
+    return sortByScore === 'DESC' ? bScore - aScore : aScore - bScore;
+  });
+
+  const totalPages = Math.ceil(sortedLeads.length / itemsPerPage);
+  const paginatedLeads = sortedLeads.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handleAssignmentChange = async (leadId: string, newSalesUserId: string) => {
     if (!newSalesUserId) return;
@@ -132,6 +142,38 @@ export const TeamLeads = () => {
               {uniqueCities.map(c => (
                 <option key={c} value={c}>{c}</option>
               ))}
+            </select>
+          </div>
+
+          <div className="relative">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <select
+              className="pl-9 pr-8 py-2 border border-slate-200 rounded-lg text-sm appearance-none bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 min-w-[140px]"
+              value={aiCategoryFilter}
+              onChange={(e) => {
+                setAiCategoryFilter(e.target.value as any);
+                setCurrentPage(1);
+              }}
+            >
+              <option value="ALL">All Priorities</option>
+              <option value="HOT">HOT</option>
+              <option value="WARM">WARM</option>
+              <option value="COLD">COLD</option>
+            </select>
+          </div>
+
+          <div className="relative">
+            <select
+              className="pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-sm appearance-none bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 min-w-[140px]"
+              value={sortByScore}
+              onChange={(e) => {
+                setSortByScore(e.target.value as any);
+                setCurrentPage(1);
+              }}
+            >
+              <option value="DESC">Score: High → Low</option>
+              <option value="ASC">Score: Low → High</option>
+              <option value="NONE">Score: None</option>
             </select>
           </div>
         </div>
