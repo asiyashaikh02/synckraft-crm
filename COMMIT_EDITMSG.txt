@@ -1,0 +1,34 @@
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# On branch main
+# Your branch is up to date with 'origin/main'.
+#
+# Changes to be committed:
+#	modified:   App.tsx
+#	modified:   lib/auth.ts
+#	modified:   package-lock.json
+#	modified:   package.json
+#	new file:   services/activityService.ts
+#	new file:   services/noteService.ts
+#	new file:   services/taskService.ts
+#	modified:   services/userService.ts
+#	new file:   src/components/Layout/DashboardLayout.tsx
+#	new file:   src/components/Layout/Sidebar.tsx
+#	new file:   src/components/Layout/TopHeader.tsx
+#	new file:   src/pages/ActivityMonitoring.tsx
+#	new file:   src/pages/FollowUps.tsx
+#	new file:   src/pages/LeadDetail.tsx
+#	new file:   src/pages/MasterDashboard.tsx
+#	new file:   src/pages/MyLeads.tsx
+#	new file:   src/pages/NotesPage.tsx
+#	new file:   src/pages/SalesAdminDashboard.tsx
+#	new file:   src/pages/SalesDashboard.tsx
+#	new file:   src/pages/SalesTeam.tsx
+#	new file:   src/pages/Tasks.tsx
+#	new file:   src/pages/TeamLeads.tsx
+#	new file:   src/pages/TeamPerformance.tsx
+#	new file:   src/pages/UserManagement.tsx
+#	modified:   types.ts
+#
